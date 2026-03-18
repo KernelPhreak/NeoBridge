@@ -14,8 +14,15 @@ namespace NeoBridge
 
         private void FrmMain_Load(object sender, EventArgs e)
         {
-            CmbDevice.DataSource = _cameraService.GetAvailableDevices();
-            CmbDevice.DisplayMember = "FriendlyName";
+            new System.Threading.Timer (_ =>
+            {
+                var devices = _cameraService.GetAvailableDevices();
+                Invoke(() =>
+                {
+                    CmbDevice.DataSource = devices;
+                    CmbDevice.DisplayMember = "FriendlyName";
+                });
+            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
 
 
 

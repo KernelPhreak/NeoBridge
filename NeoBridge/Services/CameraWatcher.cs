@@ -1,10 +1,4 @@
 ﻿using MediaDevices;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using NeoBridge.Models;
 
 namespace NeoBridge.Core
@@ -20,9 +14,7 @@ namespace NeoBridge.Core
 
         public List<CameraDeviceInfo> GetAvailableDevices()
         {
-            return MediaDevice.GetDevices()
-                .Select(d => new CameraDeviceInfo(d.FriendlyName))
-                .ToList();
+            return [.. MediaDevice.GetDevices().Select(d => new CameraDeviceInfo(d.FriendlyName))];
         }
 
         // -------- Connection --------
@@ -58,12 +50,11 @@ namespace NeoBridge.Core
         {
             EnsureConnected();
 
-            return _device!.GetDrives()
+            return [.. _device!.GetDrives()
                 .Select((drive, index) => new CameraDrive(
                     Id: drive.Name ?? $"Drive{index + 1}",
                     Name: drive.Name ?? $"Storage {index + 1}",
-                    RootPath: drive.RootDirectory.FullName))
-                .ToList();
+                    RootPath: drive.RootDirectory.FullName))];
         }
 
         // -------- Folders --------
@@ -92,11 +83,10 @@ namespace NeoBridge.Core
             EnsureConnected();
 
             // Path-based APIs return strings → normalize here
-            return _device!.EnumerateDirectories(parent.FullPath)
+            return [.. _device!.EnumerateDirectories(parent.FullPath)
                 .Select(path => new CameraFolder(
                     path,
-                    Path.GetFileName(path)))
-                .ToList();
+                    Path.GetFileName(path)))];
         }
 
         public bool FolderExists(CameraFolder folder)
@@ -111,11 +101,10 @@ namespace NeoBridge.Core
         {
             EnsureConnected();
 
-            return _device!.GetFiles(folder.FullPath)
+            return [.. _device!.GetFiles(folder.FullPath)
                 .Select(path => new CameraFile(
                     path,
-                    Path.GetFileName(path)))
-                .ToList();
+                    Path.GetFileName(path)))];
         }
 
         public void DownloadFile(CameraFile file, string localDirectory)
