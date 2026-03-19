@@ -1,5 +1,6 @@
-using NeoBridge.Core;
 using NeoBridge.Models;
+using NeoBridge.Services;
+using System.Diagnostics;
 
 namespace NeoBridge
 {
@@ -10,20 +11,28 @@ namespace NeoBridge
             InitializeComponent();
         }
 
+        CameraWatcher _cameraWatcher = new CameraWatcher();
+
         private readonly CameraWatcher _cameraService = new CameraWatcher();
 
         private void FrmMain_Load(object sender, EventArgs e)
         {
-            new System.Threading.Timer (_ =>
-            {
-                var devices = _cameraService.GetAvailableDevices();
-                Invoke(() =>
-                {
-                    CmbDevice.DataSource = devices;
-                    CmbDevice.DisplayMember = "FriendlyName";
-                });
-            }, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
+            var result = _cameraWatcher.FindDevices();
 
+            if (result != null)
+            {
+                Debug.WriteLine(result.CameraName);
+
+                foreach (var drive in result.Drives)
+                {
+                    Debug.WriteLine($"Drive: {drive.DriveName}");
+
+                    foreach (var folder in drive.Folders)
+                    {
+                        Debug.WriteLine($"  - {folder}");
+                    }
+                }
+            }
 
 
         }

@@ -1,7 +1,7 @@
 ﻿using MediaDevices;
 using NeoBridge.Models;
 
-namespace NeoBridge.Core
+namespace NeoBridge.Services
 {
     public class CameraWatcher : IDisposable
     {
@@ -9,6 +9,47 @@ namespace NeoBridge.Core
 
         public bool IsConnected => _device?.IsConnected == true;
         public CameraDeviceInfo? ConnectedDevice { get; private set; }
+
+        // -------- Device Discovery --------
+        public CameraDiscoveryResult? FindDevices()
+        {
+            // Step 1: Find the first available device
+            var device = MediaDevice.GetDevices().FirstOrDefault();
+            if (device == null)
+                return null;
+
+            // Step 2: Connect
+            Disconnect();
+            device.Connect();
+
+            _device = device;
+            ConnectedDevice = new CameraDeviceInfo(device.FriendlyName);
+
+            var result = new CameraDiscoveryResult
+            {
+                CameraName = device.FriendlyName
+            };
+
+            // Step 3: Get drives
+            foreach (var drive in device.GetDrives())
+            {
+                var driveResult = new CameraDriveResult
+                {
+                    DriveName = drive.Name ?? "Unknown Drive"
+                };
+
+                // Step 4: Get folders on this drive
+                foreach (var dir in drive.RootDirectory.EnumerateDirectories())
+                {
+                    driveResult.Folders.Add(dir.Name);
+                }
+
+                result.Drives.Add(driveResult);
+            }
+
+            return result;
+        }
+
 
         // -------- Devices --------
 
